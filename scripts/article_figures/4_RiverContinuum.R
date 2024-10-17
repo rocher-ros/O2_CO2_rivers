@@ -50,16 +50,16 @@ regression_metrics <- function(CO2, O2){
 
 
 #load metab data from Appling
-daily_metab <- read_delim("empirical data/river data/Appling2019/daily_predictions.tsv") %>% 
+daily_metab <- read_delim("prepared data/river data/Appling2019/daily_predictions.tsv") %>% 
   filter(GPP>=0, ER <= 0, GPP.Rhat < 1.1, ER.Rhat < 1.1, K600.Rhat < 1.1)
 
-site_info <- read_delim("empirical data/river data/Appling2019/site_data.tsv")
+site_info <- read_delim("prepared data/river data/Appling2019/site_data.tsv")
 
-site_catchments <- read_sf("empirical data/river data/Appling2019/catchment_shapefile/catchment_shapefile.shp")
-outlet_catchments <- read_sf("empirical data/river data/Appling2019/points_shapefile/points_shapefile.shp")
+site_catchments <- read_sf("prepared data/river data/Appling2019/catchment_shapefile/catchment_shapefile.shp")
+outlet_catchments <- read_sf("prepared data/river data/Appling2019/points_shapefile/points_shapefile.shp")
 
 #read files with catchment network properties downloaded before
-catchment_lengths <- read_csv("empirical data/river data/USGS_data/catchment_lengths_properties.csv") %>% 
+catchment_lengths <- read_csv("prepared data/river data/USGS_data/catchment_lengths_properties.csv") %>% 
   mutate(avg_discharge_m3s= 0.028316832*avg_dicharge) %>%  #convert to m3s from cfs
   select(-avg_dicharge)
 
@@ -86,7 +86,7 @@ site_metab <- daily_metab %>%
          gw_frac= groundwater_m3s/avg_discharge_m3s*100,
          spQ_mmday = discharge_mean*3600*24/catchment_area*1000) 
 
-write_csv(site_metab, "empirical data/river data/Appling2019/site_avgs_gwinputs.tsv")
+write_csv(site_metab, "prepared data/river data/Appling2019/site_avgs_gwinputs.tsv")
 
 # INITIAL VISUALIZATION OF THE DATA ----
 

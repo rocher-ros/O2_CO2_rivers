@@ -109,7 +109,7 @@ write_csv(chem_site_avg, "empirical data/groundwater data/usgs_gw_co2_o2_site_av
 
 
 # 3. process water chemistry data for all sites 
-chemistry_all <- list.files(path = "model/data/nwis/raw_data_nwis/",
+chemistry_all <- list.files(path = "empirical data/river data/USGS_data/_raw/nwis/raw_data_nwis/",
                             pattern="*.csv", 
                             full.names = T) %>% 
   map_df(~read_csv(., col_types = cols(.default = col_character()))) %>%  
@@ -126,7 +126,7 @@ chemistry_all <- list.files(path = "model/data/nwis/raw_data_nwis/",
 options(max.print=2000)
 unique(chemistry_all$variable) 
 
-vars_all <- chemistry_all %>% summarise(n= n(), .by= "variable")
+vars_all <- chemistry_all %>% summarise(n= n(), .by = "variable")
 
 vars_all %>% arrange(desc(n)) %>% #filter(str_detect(variable,"Chloro") == TRUE) %>% 
   print(n=1000) 

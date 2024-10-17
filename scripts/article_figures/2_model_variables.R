@@ -8,16 +8,16 @@ library(ggridges)
 source("scripts/model_o2_co2/model_dic_o2.R")
 
 #load metab data from Appling, keep only good days
-daily_metab <- read_delim("empirical data/river data/Appling2019/daily_predictions.tsv") %>% 
+daily_metab <- read_delim("prepared data/river data/Appling2019/daily_predictions.tsv") %>% 
   filter(GPP>=0, ER <= 0, GPP.Rhat < 1.1, ER.Rhat < 1.1, K600.Rhat < 1.1)
 
 #get site average data for all variables, calculated in script # 4
-site_metab <- read_csv("empirical data/river data/Appling2019/site_avgs_gwinputs.tsv") %>% 
+site_metab <- read_csv("prepared data/river data/Appling2019/site_avgs_gwinputs.tsv") %>% 
   select(site_name, ends_with("_median"), gw_frac, spQ_mmday, tot_area) %>% 
   rename_with(~ str_remove(., "_median"), everything()) %>% 
   mutate(gw_frac = ifelse(gw_frac > 100 | gw_frac < 0, NA, gw_frac))
 
-gw_usgs <- read_csv("empirical data/groundwater data/usgs_gw_co2_o2_site_avg.csv") %>% 
+gw_usgs <- read_csv("prepared data/groundwater data/usgs_gw_co2_o2_site_avg.csv") %>% 
   mutate(carbon_dioxide_mg_l = ifelse(carbon_dioxide_mg_l > 150, NA, carbon_dioxide_mg_l),#extreme pco2 values, romving above 150.000 ppm
          co2_umol_l = carbon_dioxide_mg_l/44*1e+3,
          co2_ppm = co2_umol_l*1e+3* 0.04477565,
@@ -25,7 +25,7 @@ gw_usgs <- read_csv("empirical data/groundwater data/usgs_gw_co2_o2_site_avg.csv
          oxygen_umol_l= oxygen_mg_l/32*1e+3)
 
 #read the water chemistry file, to get alkalinity
-chemistry_usgs <- read_csv("empirical data/river data/USGS_data/chemistry_site_avg.csv")
+chemistry_usgs <- read_csv("prepared data/river data/USGS_data/chemistry_site_avg.csv")
 
 #join to the previous file
 met_with_chem <- site_metab %>% 

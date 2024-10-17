@@ -50,14 +50,14 @@ regression_metrics <- function(x, y){
 }
 
 # Read files ----
-sp_site_labels <- read_csv("empirical data/river data/streampulse/_raw/streampulse/streampulse_site_data.csv") %>% 
+sp_site_labels <- read_csv("prepared data/river data/streampulse/streampulse_site_data.csv") %>% 
   filter(str_detect(variableList,"CO2_ppm" ))
 
-sp_site_data <- read_csv("empirical data/river data/streampulse/site_info_streams.csv") %>% 
+sp_site_data <- read_csv("prepared data/river data/streampulse/site_info_streams.csv") %>% 
   select(-geometry)
 
 
-sp_metab_data <- read_csv("empirical data/river data/streampulse/all_daily_model_results.csv") %>% 
+sp_metab_data <- read_csv("prepared data/river data/streampulse/all_daily_model_results.csv") %>% 
   filter(GPP>= 0, ER <= 0, valid_day == 1) %>% 
   mutate(day_month= as.Date(date))
 
@@ -65,13 +65,13 @@ sp_metab_avg <- sp_metab_data %>%
   summarise(across(where(is.numeric), ~mean(.x, na.rm = TRUE)), .by= "site") 
 
 
-discharge_all <- read_csv("empirical data/river data/streampulse/discharge_usgs.csv") %>% 
+discharge_all <- read_csv("prepared data/river data/streampulse/discharge_usgs.csv") %>% 
   mutate(date= as.Date(date_time)) %>% 
   summarise(discharge = mean(discharge), .by= c("site", "date")) %>% 
   left_join(sp_site_labels %>% select(siteID, USGSgageID), by = c("site" = "USGSgageID")) %>% 
   mutate(discharge_m3s = discharge*0.028316832)
 
-sp_data <- read_csv("empirical data/river data/streampulse/stream_dataset.csv") %>% 
+sp_data <- read_csv("prepared data/river data/streampulse/stream_dataset.csv") %>% 
   mutate(date= as.Date(dateTimeUTC)) %>% 
   left_join(discharge_all, by = c("siteID", "date")) %>% 
   mutate(Discharge_joined = ifelse(is.na(Discharge_m3s) == TRUE, discharge_m3s, Discharge_m3s),
