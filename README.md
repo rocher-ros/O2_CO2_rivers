@@ -9,7 +9,10 @@ The  `scripts/` folder contains three sub-folders:
 - `data_cleaning`, which contains the scripts to do some pre-processing of the data
 - `article_figures`, containing the code to clean data, run the model, and produce the figures of the article.
 
+The data for the main analysis is deposited in <link-to-repo>, once extracted in a folder called `prepared data`, is possible to run the code.
 Below I detail the content on each folder.
 
 ## `model_o2_co2`
 
+
+![Figure 2 of the paper](https://github.com/rocher-ros/O2_CO2_rivers/blob/main/plots/main/fig2_main_drivers.png)
