@@ -206,33 +206,3 @@ sp_data %>%
 ggsave("plots/main/fig3_met_regimes.png", width = 7, height = 6)
 
 
-
-sp_data %>%
-  filter(siteID %in% selected_sites) %>% 
-  mutate(month=month(dateTimeUTC), 
-         season = case_when(month %in% c(12,1,2) ~ "winter",
-                            month %in% 3:5 ~ "spring",
-                            month %in% 6:8 ~ "summer",
-                            month %in% 9:11 ~ "autumn") %>% as_factor() %>% 
-           fct_relevel("winter", "spring", "summer", "autumn"),
-         site_type= case_when(siteID == "k6"~ "Dark & Stable",
-                              siteID == "BEC"~ "Bright & Stable",
-                              siteID == "BRW"~ "Bright & Stormy",
-                              siteID == "NR1000"~ "Dark & Stormy") %>% 
-           as_factor() %>% 
-           fct_relevel(c("Dark & Stable", "Bright & Stable",
-                         "Dark & Stormy", "Bright & Stormy" ))) %>% 
-  ggplot(aes(CO2dep_mmolm3, O2dep_mmolm3,  fill = season, group=season))+
- # stat_ellipse(geom = "polygon", alpha = .7, level = 0.1)+
-  stat_ellipse(geom = "polygon", alpha = .3, level = 0.95)+
-  geom_hline(yintercept = 0, linetype=1)+
-  geom_vline(xintercept = 0, linetype=1)+
-  #geom_point(size=.1, alpha=.1)+
-  geom_abline(slope=-1, intercept = 0, linetype=2)+
-  labs(x=expression(CO[2]~departure~(mmol~m^-3)), y=expression(O[2]~departure~(mmol~m^-3)))+
-  scale_fill_manual(values = c("cadetblue3", "darkolivegreen3", "goldenrod2", "coral3"))+
-  #guides(fill = "none")+
-  facet_wrap(~site_type)+
-  theme_classic()+
-  theme(legend.position ="right", legend.text = element_text(size=12),
-        panel.border =element_rect(linewidth = 1, fill= NA))

@@ -333,24 +333,6 @@ plot_ellipse_rcc +
 ggsave("plots/main/fig5_ellipses_rcc.png", width = 7, height = 5.5)  
 
 
-ellipse_metrics %>% 
-    pivot_longer(cols = c(meanCO2, meanO2, offset, length, width, EQ, corr), names_to = "variable", values_to = "values") %>% 
-    ggplot(aes(q.m3s, values))+
-    #geom_point()+
-    geom_line()+
-    scale_x_log10()+
-    facet_wrap(~ variable, scales = "free_y", ncol= 1, strip.position="right")+
-    theme_bw()
-  
-  params_rcc %>% 
-    pivot_longer(cols = c(GPP.day, ER.day, bigK, depth.m, gw.frac), names_to = "variable", values_to = "values") %>% 
-    ggplot(aes(q.m3s, values))+
-    geom_point()+
-    geom_line()+
-    scale_x_log10()+
-    facet_wrap(~ variable, scales = "free_y", ncol= 1, strip.position="right")+
-    theme_bw()
-
 
 
     

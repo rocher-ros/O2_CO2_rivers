@@ -1,7 +1,7 @@
 # Information ----
 # Script to assess patterns of CO2-O2 in river versus lakes
 # Author: Gerard Rocher-Ros
-# Last edit: 2024-09-03
+# Last edit: 2024-10-18
 
 # Install and Load libraries ----
 
