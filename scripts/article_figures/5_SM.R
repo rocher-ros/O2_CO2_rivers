@@ -76,7 +76,7 @@ plot_rivers <- ggplot()+
 
 plot_rivers + plot_gw + plot_layout(ncol = 1) + plot_annotation(tag_levels = "a")
 
-ggsave("plots/maps_sites.png")
+ggsave("plots/SM/maps_sites.png")
 
 
 ## Figure of alkalinity with river discharge 
@@ -89,4 +89,4 @@ met_with_chem %>%
   theme_classic()+
   labs(x=expression(Discharge~(m^3~s^-1)), y= expression(Alkalinity~(mu*mol~L^-1)))
 
-ggsave("plots/alkalinity_discharge.png", width = 7, height = 5)
+ggsave("plots/SM/alkalinity_discharge.png", width = 7, height = 5)

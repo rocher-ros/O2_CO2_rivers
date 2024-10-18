@@ -182,7 +182,7 @@ plot_lakes_rivers <- co2_density_plot+
   plot_layout(ncol=2, nrow = 2, guides = 'collect', widths= c(5,1), heights = c(1,4))
 
 
-ggsave(filename = "plots/fig1_lakes_rivers.png", plot_lakes_rivers, scale = 1, height = 6, width = 6.5)
+ggsave(filename = "plots/main/fig1_lakes_rivers.png", plot_lakes_rivers, scale = 1, height = 6, width = 6.5)
 
 
 # Calculate ellipse metrics ----

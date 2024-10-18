@@ -588,11 +588,9 @@ plots_all <-
   plot_gw + plot_gw_co2 + plot_gw_o2 +
   plot_layout(ncol= 3) 
 
-ggsave("plots/fig2_main_drivers.png", plots_all, height = 8, width = 8, scale=1.22)
+ggsave("plots/main/fig2_main_drivers.png", plots_all, height = 8, width = 8, scale=1.22)
 
-ggsave("plots/fig2_main_drivers.pdf", plots_all, height = 8, width = 8, scale=1.2)
 
-ggsave("plots/fig2_main_drivers.svg", plots_all, height = 8, width = 8, scale=1.22)
 
 
 

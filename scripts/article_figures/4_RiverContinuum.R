@@ -219,7 +219,7 @@ plot_vars_rcc <- plot_gpp + plot_er + plot_k + plot_gw +
 
 plot_vars_rcc
 
-ggsave("plots/fig4_vars_rcc.png", plot = plot_vars_rcc,  width= 6, height = 8)
+ggsave("plots/main/fig4_vars_rcc.png", plot = plot_vars_rcc,  width= 6, height = 8)
 
 params_rcc <- tibble(
   discharge_mean= 10^(seq(from = log10(min(data_for_model$discharge_mean)), 
@@ -330,7 +330,7 @@ plot_ellipse_rcc +
   plot_layout(ncol= 2, widths = c(2.6, 1)) +
   plot_annotation(tag_levels = 'a')
 
-ggsave("plots/fig5_ellipses_rcc.png", width = 7, height = 5.5)  
+ggsave("plots/main/fig5_ellipses_rcc.png", width = 7, height = 5.5)  
 
 
 ellipse_metrics %>% 

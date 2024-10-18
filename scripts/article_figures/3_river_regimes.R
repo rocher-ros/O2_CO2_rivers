@@ -113,7 +113,7 @@ metab_q_avg_metrics %>%
   theme(legend.position = c(.85,.75))
 
 
-ggsave("plots/fig_gpp_sqew.png", width = 6, height = 4)
+ggsave("plots/SM/fig_gpp_sqew.png", width = 6, height = 4)
 
 metab_q_avg_metrics %>% filter(siteID %in% c("KC6","SBM", "BRW", "BEC")) %>% 
   select(siteID, GPP_mean, ER_mean, Discharge_joined_mean, Discharge_joined_skewness)
@@ -203,8 +203,8 @@ sp_data %>%
         strip.text = element_text(size=12, face= "bold"),
         strip.background = element_blank()) 
 
-ggsave("plots/fig3_met_regimes.png", width = 7, height = 6)
-ggsave("plots/fig3_met_regimes.svg", width = 7, height = 6, scale= .7)
+ggsave("plots/main/fig3_met_regimes.png", width = 7, height = 6)
+
 
 
 sp_data %>%
