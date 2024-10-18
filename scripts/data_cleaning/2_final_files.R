@@ -20,7 +20,7 @@ lapply(package_list, require, character.only = TRUE)
 
 # 1. Download stream network properties from nhdplus ----
 
-outlet_catchments <- read_sf("empirical data/river data/Appling2019/points_shapefile/points_shapefile.shp")
+outlet_catchments <- read_sf("processed data/river data/Appling2019/points_shapefile/points_shapefile.shp")
 
 data_nhd <- tibble(site_nm= outlet_catchments$site_nm,
                    tot_length= NA,
@@ -62,14 +62,14 @@ for(i in seq_along(data_nhd$site_nm)){
 
 
 #export the file for further analysis
-write_csv(data_nhd, "empirical data/river data/USGS_data/catchment_lengths_properties.csv")
+write_csv(data_nhd, "processed data/river data/USGS_data/catchment_lengths_properties.csv")
 
 
 # 2. Process groundwater files ----
 #read files downloaded from USGS waterdata portal
-resultphyschem <- read_csv("empirical data/groundwater data/_raw/resultphyschem.csv")
+resultphyschem <- read_csv("raw data/groundwater data/_raw/resultphyschem.csv")
 
-sites <- read_csv("empirical data/groundwater data/_raw/station.csv")
+sites <- read_csv("raw data/groundwater data/_raw/station.csv")
 
 # check file names
 names(sites)
@@ -105,11 +105,11 @@ chem_site_avg <- chem_sites %>%
 names(chem_site_avg)
 
 
-write_csv(chem_site_avg, "empirical data/groundwater data/usgs_gw_co2_o2_site_avg.csv")
+write_csv(chem_site_avg, "processed data/groundwater data/usgs_gw_co2_o2_site_avg.csv")
 
 
 # 3. process water chemistry data for all sites 
-chemistry_all <- list.files(path = "empirical data/river data/USGS_data/_raw/nwis/raw_data_nwis/",
+chemistry_all <- list.files(path = "raw data/river data/USGS_data/nwis/",
                             pattern="*.csv", 
                             full.names = T) %>% 
   map_df(~read_csv(., col_types = cols(.default = col_character()))) %>%  
@@ -158,7 +158,7 @@ avg_site <- chemistry_clean %>%
               values_from= value_mean) %>% 
   janitor::clean_names()
 
-write_csv(avg_site, "empirical data/river data/USGS_data/chemistry_site_avg.csv")
+write_csv(avg_site, "processed data/river data/USGS_data/chemistry_site_avg.csv")
 
 
 

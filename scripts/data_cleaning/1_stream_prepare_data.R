@@ -59,16 +59,16 @@ air_CO2 = 400 #ppm
 
 # Process streampulse data ----
 # Read files 
-sp_data <- read_csv("empirical data/river data/streampulse/_raw/streampulse/streampulse_sites_with_co2_wide.csv") %>% 
+sp_data <- read_csv("raw data/river data/streampulse/_raw/streampulse/streampulse_sites_with_co2_wide.csv") %>% 
   drop_na(CO2_ppm, DO_mgL, WaterTemp_C) %>%
   filter(CO2_ppm > 100, CO2_ppm < 20000, WaterTemp_C > -10, WaterTemp_C < 40, DO_mgL > 1,
          !siteID %in% c("AbiskoM1", "AbiskoM6","AbiskoM9", "AbiskoM10","AbiskoM17", "AbiskoM16")) %>% 
   mutate(AirPres_atm = AirPres_kPa/101.325)
 
 #read the new ones form Miellajokka to replace in the streampulse DB
-miellajokka <- list.files("empirical data/river data/streampulse/_raw/miellajokka/", full.names = TRUE) %>% 
+miellajokka <- list.files("raw data/river data/streampulse/_raw/miellajokka/", full.names = TRUE) %>% 
   map_df(~read_plus(.)) %>% 
-  mutate(siteID = str_replace(siteID,"empirical data/river data/streampulse/_raw/miellajokka/", "Abisko"),
+  mutate(siteID = str_replace(siteID,"raw data/river data/streampulse/_raw/miellajokka/", "Abisko"),
          siteID = str_remove(siteID,"_2016_co2.csv"),
          siteID = str_remove(siteID,"_2015_co2.csv"),
          siteID = str_remove(siteID,"/"),
@@ -95,7 +95,7 @@ miellajokka <- list.files("empirical data/river data/streampulse/_raw/miellajokk
          CDOM_ppb, pH, Turbidity_NTU, Turbidity_FNU, SpecCond_uScm, Nitrate_mgL)
 
 
-sp_site_data <- read_csv("empirical data/river data/streampulse/_raw/streampulse/streampulse_site_data.csv") %>% 
+sp_site_data <- read_csv("prepared data/river data/streampulse/streampulse_site_data.csv") %>% 
   filter(str_detect(variableList,"CO2_ppm" )) 
 
 
@@ -122,13 +122,13 @@ sp_site_data %>%
 
 
 #get the kyrcklan DO data form Gomez-Gener et al. 2021 NatComm
-krycklan_do <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/gomez_gener_ts_DO_Krycklan.csv")
+krycklan_do <- read_csv("raw data/river data/streampulse/_raw/krycklan/raw/gomez_gener_ts_DO_Krycklan.csv")
 
 
 
 
 #read in the co2 data form kryclan, obtained from monitoring
-c7_co2 <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/C7__Q_TW_CO2_2017-2022.Time_Series_Data.2024030405212542.csv", 
+c7_co2 <- read_csv("raw data/river data/streampulse/_raw/krycklan/raw/C7__Q_TW_CO2_2017-2022.Time_Series_Data.2024030405212542.csv", 
                 skip = 13) %>% 
   rename(co2_ppm = `CO2 (Dis)@110107_C7`, q_ls = `Discharge@110107_C7`,
         temp_water_c = `Water Temp@110107_C7`, datetime = TimeStamp) %>% 
@@ -138,7 +138,7 @@ c7_co2 <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/C7__
   summarise(across(everything(), mean), .by ="date_hour") %>% 
   mutate(site= "k7")
 
-c18_co2 <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/C18_Q_TW_CO2_2017-2022.Time_Series_Data.2024030405403171.csv", 
+c18_co2 <- read_csv("raw data/river data/streampulse/_raw/krycklan/raw/C18_Q_TW_CO2_2017-2022.Time_Series_Data.2024030405403171.csv", 
                    skip = 13) %>% 
   rename(co2_ppm = `CO2 (Dis)@110118B`, q_ls = `Discharge@110118B`,
          temp_water_c = `Water Temp@110118B`, datetime = TimeStamp) %>% 
@@ -149,7 +149,7 @@ c18_co2 <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/C18
   mutate(site= "k18")
 
 
-c4_co2 <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/C4_Q_TW_CO2_2017-2022.Time_Series_Data.2024030405272149.csv", 
+c4_co2 <- read_csv("raw data/river data/streampulse/_raw/krycklan/raw/C4_Q_TW_CO2_2017-2022.Time_Series_Data.2024030405272149.csv", 
                     skip = 13) %>% 
   rename(co2_ppm = `CO2 (Dis)@110104_C4`, q_ls = `Discharge@110104_C4`,
          temp_water_c = `Water Temp@110104_C4`, datetime = TimeStamp) %>% 
@@ -159,7 +159,7 @@ c4_co2 <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/C4_Q
   summarise(across(everything(), mean), .by ="date_hour") %>% 
   mutate(site= "k4")
 
-c6_co2 <- read_csv("empirical data/river data/streampulse/_raw/krycklan/raw/C6_Q_TW_CO2.Time_Series_Data.2024030405322643.csv", 
+c6_co2 <- read_csv("raw data/river data/streampulse/_raw/krycklan/raw/C6_Q_TW_CO2.Time_Series_Data.2024030405322643.csv", 
                    skip = 13) %>% 
   filter(as.Date(TimeStamp) < as.Date("2021-05-01")) %>% 
   rename(co2_ppm = `CO2 (Dis)@110106_C6`, q_ls = `Discharge@110106_C6`,
@@ -287,7 +287,7 @@ co2_o2_krycklan %>%
 
 #export the time series dataset
 bind_rows(sp_data_cleaned, miellajokka, co2_o2_krycklan)  %>% 
-  write_csv("empirical data/river data/streampulse/stream_dataset.csv")
+  write_csv("processed data/river data/streampulse/stream_dataset.csv")
 
 
 ## get USGS data for each site
@@ -303,7 +303,7 @@ for(i in seq_along(sites_usgs$USGSgageID)){
     dataProfile = "resultPhysChem")
   
   
-  write_csv(dat_sites, paste0("data/USGS_data/chemistry_usgs-",sites_usgs$USGSgageID[i], ".csv"))
+  write_csv(dat_sites, paste0("raw data/river data/USGS_data/chemistry/chemistry_usgs-",sites_usgs$USGSgageID[i], ".csv"))
   
   print(paste("done", i))
   
@@ -319,14 +319,14 @@ for(i in seq_along(sites_usgs$USGSgageID)){
                           endDate = "2021-12-31")
   
   
-  write_csv(dat_sites, paste0("data/USGS_data/discharge_usgs-",sp_site_data$USGSgageID[i], ".csv"))
+  write_csv(dat_sites, paste0("raw data/river data/USGS_data/discharge/discharge_usgs-",sp_site_data$USGSgageID[i], ".csv"))
   
   print(paste("done", i))
   
 }
 
 
-chemistry_all <- list.files(path = "data/USGS_data/chemistry/",
+chemistry_all <- list.files(path = "raw data/river data/USGS_data/chemistry/",
                             pattern="*.csv", 
                             full.names = T) %>% 
   map_df(~read_csv(., col_types = cols(.default = col_character()))) %>%  
@@ -341,10 +341,11 @@ chemistry_all <- list.files(path = "data/USGS_data/chemistry/",
          .keep = "none")
 
 chemistry_all %>% 
-  write_csv("data/stream_datasets/chem_usgs.csv")
+  write_csv("processed data/stream_datasets/chem_usgs.csv")
 
 
-discharge_all <- list.files(path = "data/USGS_data/discharge/",
+
+discharge_all <- list.files(path = "raw data/river data/USGS_data/discharge/",
                             pattern="*.csv", 
                             full.names = T) %>% 
   map_df(~read_csv(., col_types = cols(.default = col_character()))) %>% 
@@ -354,4 +355,4 @@ discharge_all <- list.files(path = "data/USGS_data/discharge/",
          .keep = "none")
 
 discharge_all %>% 
-  write_csv("data/stream_datasets/discharge_usgs.csv")
+  write_csv("processed data/stream_datasets/discharge_usgs.csv")
