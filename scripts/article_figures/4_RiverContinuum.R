@@ -1,11 +1,20 @@
 
 # LOAD PACKAGES AND READ FILES ----
-#Load packages needed
-library(tidyverse)
-library(phreeqc)
-library(patchwork)
-library(sf)
-library(lmodel2)
+## Install and Load libraries ----
+
+# List of all packages needed
+package_list <- c('tidyverse', 'patchwork', 'sf', 'lmodel2', 'lwgeom')
+
+# Check if there are any packacges missing
+packages_missing <- setdiff(package_list, rownames(installed.packages()))
+
+# If we find a package missing, install them
+if(length(packages_missing) >= 1) install.packages(packages_missing) 
+
+# Now load all the packages
+lapply(package_list, require, character.only = TRUE)
+
+
 
 #Load all custom functions for the model
 source("scripts/model_o2_co2/model_dic_o2.R")
@@ -269,15 +278,15 @@ plot_ellipse_rcc <- sim_out %>%
        color= expression(Discharge~(m^3~s^-1)))+
   theme(legend.position= "inside", legend.position.inside =  c(.8,.88), legend.key.width = unit(5, "mm"))
 
-
+#check the plot
 plot_ellipse_rcc
 
 
 
 
-
+#calculate the metrics  by discharge
 ellipse_metrics <- sim_out %>%
-  filter(date > as.Date("2020-07-13")) %>% 
+  filter(date > as.Date("2020-07-13")) %>% #take only one day of the simulation
   mutate(CO2dep_mmolm3 = co2.mod- co2.air,
          O2dep_mmolm3 = o2.mod-o2.air) %>% 
   summarise(meanCO2= mean(CO2dep_mmolm3),
@@ -289,7 +298,7 @@ ellipse_metrics <- sim_out %>%
   unnest(c(elipse, reg))
 
 
- 
+# make the simple plots for the metrics
 offset_plot <- ellipse_metrics %>% 
   ggplot(aes(q.m3s, offset ))+
   geom_line(linewidth= 1.5)+
@@ -325,6 +334,7 @@ width_plot <- ellipse_metrics %>%
 plot_metrics <- length_plot + width_plot + offset_plot + eq_plot  + 
   plot_layout(ncol= 1) 
 
+#put together the final figure
 plot_ellipse_rcc + 
   plot_metrics + 
   plot_layout(ncol= 2, widths = c(2.6, 1)) +

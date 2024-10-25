@@ -110,7 +110,7 @@ metab_q_avg_metrics %>%
   labs(x= expression(GPP~(g~O[2]~m^-2~d^-1)), y= "Skewness of discharge", color= expression((Discharge~m^3~s^-1)))+
   scale_color_viridis_d(direction = -1, option= "mako", begin= .1, end= .9)+
   theme_classic()+
-  theme(legend.position = c(.85,.75))
+  theme(legend.position = "inside", legend.position.inside = c(.85,.75))
 
 
 ggsave("plots/SM/fig_gpp_sqew.png", width = 6, height = 4)
@@ -119,23 +119,6 @@ metab_q_avg_metrics %>% filter(siteID %in% c("KC6","SBM", "BRW", "BEC")) %>%
   select(siteID, GPP_mean, ER_mean, Discharge_joined_mean, Discharge_joined_skewness)
 
                                
-                               #with ellipses by month
-sp_data %>%
-  mutate(month=month(dateTimeUTC), 
-         season = case_when(month %in% c(12,1,2) ~ "winter",
-                            month %in% 3:5 ~ "spring",
-                            month %in% 6:8 ~ "summer",
-                            month %in% 9:11 ~ "autumn")) %>% 
-  ggplot(aes(CO2dep_mmolm3, O2dep_mmolm3, fill = month, group=month))+
-  stat_ellipse(geom = "polygon", alpha = .3)+
-  geom_hline(yintercept = 0, linetype=1)+
-  geom_vline(xintercept = 0, linetype=1)+
-  #geom_point(size=.1, alpha=.1)+
-  geom_abline(slope=-1, intercept = 0, linetype=2)+
-  labs(x=expression(CO[2]~departure~(mmol~m^-3)), y=expression(O[2]~departure~(mmol~m^-3)))+
-  scale_fill_viridis_c(option="inferno")+
-  #guides(fill = "none")+
-  facet_wrap(~siteID, scales = "free")
 
 
 

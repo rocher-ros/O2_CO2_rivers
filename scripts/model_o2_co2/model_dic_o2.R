@@ -4,8 +4,20 @@
 
 source("scripts/model_o2_co2/auxiliary_functions.R")
 
-library(tidyverse)
-library(phreeqc)
+
+# Install and Load libraries ----
+
+# List of all packages needed
+package_list <- c('tidyverse', 'phreeqc')
+
+# Check if there are any packacges missing
+packages_missing <- setdiff(package_list, rownames(installed.packages()))
+
+# If we find a package missing, install them
+if(length(packages_missing) >= 1) install.packages(packages_missing) 
+
+# Now load all the packages
+lapply(package_list, require, character.only = TRUE)
 
 #for debugging
 #params <- tibble(GPP.day= 3/32*1e+3, ER.day = 8/32*1e+3, PQ= 1.2, RQ= 1.2,  bigK = 20, alk.mmolm3= 500, q.m3s= 1.3, 

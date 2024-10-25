@@ -126,7 +126,7 @@ ggplot(aes(CO2dep, O2dep)) +
                          geom = "polygon", contour = TRUE, contour_var = "ndensity",
                          breaks = c(0.05, 0.2, 0.4,0.6,0.8,1), linewidth= .2
                          )+
-  #geom_point(data=. %>% summarise(CO2dep = median(CO2dep),
+  #geom_point(data=. %>% summarise(CO2dep = median(CO2dep), #in case you want to see all the points, takes some time
   #                                O2dep = median(O2dep), .by= type), 
   #           aes(fill=type), shape= 23, size= 3, show.legend = FALSE)+
   scale_y_continuous(breaks = c(-150, -100, -50, 0, 50), limits= c(-180, 80))+
@@ -186,6 +186,7 @@ ggsave(filename = "plots/main/fig1_lakes_rivers.png", plot_lakes_rivers, scale =
 
 
 # Calculate ellipse metrics ----
+#this is used for the overview in the introduction
 metrics_site <- rivers_lakes %>% 
   drop_na(CO2dep, O2dep) %>% 
   group_by(type) %>% 

@@ -1,15 +1,23 @@
 
+## Install and Load libraries ----
 
-library(tidyverse)
-library(sf)
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(patchwork)
+# List of all packages needed
+package_list <- c('tidyverse', 'patchwork', 'sf', 'rnaturalearth', 'rnaturalearthdata')
+
+# Check if there are any packacges missing
+packages_missing <- setdiff(package_list, rownames(installed.packages()))
+
+# If we find a package missing, install them
+if(length(packages_missing) >= 1) install.packages(packages_missing) 
+
+# Now load all the packages
+lapply(package_list, require, character.only = TRUE)
 
 
+# Read files ----
 #groundwater data 
 
-gw_usgs <- read_csv("empirical data/groundwater data/usgs_gw_co2_o2_site_avg.csv") %>% 
+gw_usgs <- read_csv("prepared data/groundwater data/usgs_gw_co2_o2_site_avg.csv") %>% 
   mutate(carbon_dioxide_mg_l = ifelse(carbon_dioxide_mg_l > 150, NA, carbon_dioxide_mg_l),#extreme pco2 values, romving above 150.000 ppm
          co2_umol_l = carbon_dioxide_mg_l/44*1e+3,
          co2_ppm = co2_umol_l*1e+3* 0.04477565,
@@ -23,20 +31,20 @@ gw_plotting <- gw_usgs %>% mutate(shape_plot= case_when(is.na(oxygen_umol_l) == 
                                                         is.na(oxygen_umol_l) == FALSE & is.na(co2_umol_l) == FALSE ~ "Both",
                                                         ) )
 #sites form Appling 2019
-daily_metab <- read_delim("empirical data/river data/Appling2019/daily_predictions.tsv") %>% 
+daily_metab <- read_delim("prepared data/river data/Appling2019/daily_predictions.tsv") %>% 
   filter(GPP>=0, ER <= 0, GPP.Rhat < 1.1, ER.Rhat < 1.1, K600.Rhat < 1.1)
 
 #get site average data for all variables, calculated in script # 4
-site_metab <- read_csv("empirical data/river data/Appling2019/site_avgs_gwinputs.tsv") %>% 
+site_metab <- read_csv("prepared data/river data/Appling2019/site_avgs_gwinputs.tsv") %>% 
   select(site_name, ends_with("_median"), gw_frac, spQ_mmday, tot_area) %>% 
   rename_with(~ str_remove(., "_median"), everything()) %>% 
   mutate(gw_frac = ifelse(gw_frac > 100 | gw_frac < 0, NA, gw_frac))
 
-site_catchments <- read_sf("empirical data/river data/Appling2019/catchment_shapefile/catchment_shapefile.shp")
-outlet_catchments <- read_sf("empirical data/river data/Appling2019/points_shapefile/points_shapefile.shp")
+site_catchments <- read_sf("prepared data/river data/Appling2019/catchment_shapefile/catchment_shapefile.shp")
+outlet_catchments <- read_sf("prepared data/river data/Appling2019/points_shapefile/points_shapefile.shp")
 
 #read the water chemistry file, to get alkalinity
-chemistry_usgs <- read_csv("empirical data/river data/USGS_data/chemistry_site_avg.csv")
+chemistry_usgs <- read_csv("prepared data/river data/USGS_data/chemistry_site_avg.csv")
 
 #join to the previous file
 met_with_chem <- site_metab %>% 
@@ -46,17 +54,17 @@ met_with_chem <- site_metab %>%
   mutate(alk_mmol_m3 = alkalinity_mg_l_ca_co3*0.02*1000)
 
 
+#get the map layers for plotting
 north_america <- ne_countries(scale = "medium", returnclass = "sf") %>% 
   filter(continent== "North America")
 
 rivers50 <- ne_download(scale = 50, type = 'rivers_lake_centerlines', category = 'physical', returnclass = "sf")
 
+#maps 
 plot_gw <- 
   ggplot()+
   geom_sf(data= north_america, linewidth= 0.1)+
   geom_sf(data= rivers50, color= "cornflowerblue")+
-  #geom_sf(data= gw_usgs %>% drop_na(oxygen_umol_l), shape= 2)+
-  #geom_sf(data= gw_usgs %>% drop_na(co2_umol_l), shape= 6)+
   geom_sf(data = gw_plotting %>% filter(shape_plot != "none"), aes(shape= shape_plot))+
   scale_shape_manual(values= c(11,6,2))+
   coord_sf(xlim = c(-170,-52), ylim = c(15,70), expand = FALSE)+
@@ -73,7 +81,7 @@ plot_rivers <- ggplot()+
   theme_minimal()+
   labs(title= "River sites")
 
-
+#compose the map plot
 plot_rivers + plot_gw + plot_layout(ncol = 1) + plot_annotation(tag_levels = "a")
 
 ggsave("plots/SM/maps_sites.png")

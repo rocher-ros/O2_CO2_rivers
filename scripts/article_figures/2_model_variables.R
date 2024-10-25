@@ -1,8 +1,17 @@
-## Load packages and files ----
-# Load libraries
-library(patchwork)
-library(scico)
-library(ggridges)
+# Install and Load libraries ----
+
+# List of all packages needed
+package_list <- c('tidyverse', 'patchwork', 'scico', 'ggridges')
+
+# Check if there are any packacges missing
+packages_missing <- setdiff(package_list, rownames(installed.packages()))
+
+# If we find a package missing, install them
+if(length(packages_missing) >= 1) install.packages(packages_missing) 
+
+# Now load all the packages
+lapply(package_list, require, character.only = TRUE)
+
 
 #Load all custom functions for the model
 source("scripts/model_o2_co2/model_dic_o2.R")
@@ -54,12 +63,6 @@ gw_usgs %>%
 gw_usgs %>% 
   drop_na(oxygen_umol_l) %>% 
   summarise(across(c(oxygen_umol_l), list(min = min, max= max, mean=mean, sd= sd, count = ~ n())))
-
-#now eyeballing co2, in  mmol/m3 for the model,
-# to get this in ppm, do
-#  co2_ppm*kh*1000, which for 15C temp and 1 atm would be: umol_col*1000* 0.04477565
-#gw_distr <- tibble(gw_o2 = rexp(10000, rate = .4),
-#                   gw_co2 = rlnorm(10000, mean= 0, sd = 0.5)*500) 
 
 
 

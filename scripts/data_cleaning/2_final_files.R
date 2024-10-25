@@ -6,7 +6,7 @@
 # Install and Load libraries ----
 
 # List of all packages needed
-package_list <- c('tidyverse', 'sf', 'nhdplusTools')
+package_list <- c('tidyverse', 'sf', 'nhdplusTools', 'janitor')
 
 # Check if there are any packacges missing
 packages_missing <- setdiff(package_list, rownames(installed.packages()))
@@ -32,7 +32,7 @@ data_nhd <- tibble(site_nm= outlet_catchments$site_nm,
 
 for(i in seq_along(data_nhd$site_nm)){
   
-  start_point <- outlet_catchments[i,]#st_sfc(st_point(c(-89.362239, 43.090266)), crs = 4269)
+  start_point <- outlet_catchments[i,]
   
   start_comid <- discover_nhdplus_id(start_point)
   
