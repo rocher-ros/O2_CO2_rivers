@@ -67,9 +67,9 @@ write_csv(data_nhd, "processed data/river data/USGS_data/catchment_lengths_prope
 
 # 2. Process groundwater files ----
 #read files downloaded from USGS waterdata portal
-resultphyschem <- read_csv("raw data/groundwater data/_raw/resultphyschem.csv")
+resultphyschem <- read_csv("raw data/groundwater data/resultphyschem.csv")
 
-sites <- read_csv("raw data/groundwater data/_raw/station.csv")
+sites <- read_csv("raw data/groundwater data/station.csv")
 
 # check file names
 names(sites)
@@ -101,6 +101,10 @@ chem_site_avg <- chem_sites %>%
          co2_umol_l = carbon_dioxide_mg_l/44*1e+3,
          co2_ppm = co2_umol_l*1e+3* 0.04477565,
          oxygen_mg_l = ifelse(oxygen_mg_l > 13, NA, oxygen_mg_l))
+
+#count outliers removed. for this you need to run the thing above until "clean_names()" It is 38 out of 970 (3.9%)
+#chem_site_avg %>% filter(carbon_dioxide_mg_l> 150)
+#chem_site_avg %>% filter(oxygen_mg_l> 13)
 
 names(chem_site_avg)
 

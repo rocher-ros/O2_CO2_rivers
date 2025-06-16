@@ -152,7 +152,7 @@ metrics_plot <-
                               "Offset: ", round(offset, 0),"\n",
                               "EQ: ", round(EQ,1), "\n",
                               expression(R^2),": ", round(corr^2,2)),
-         text.site = c("Black Earth creek (WI, USA)", "Brewery creek (WI, USA)", "Krycklan C6 (Sweden)", "Saddleback mountain (NH, USA)") )
+         text.site = c("Black Earth Creek (WI, USA)", "Brewery Creek (WI, USA)", "Krycklan C6 (Sweden)", "Saddleback mountain (NH, USA)") )
 
 metrics_plot %>% select(siteID, text.string)
 

@@ -20,8 +20,8 @@ if(length(packages_missing) >= 1) install.packages(packages_missing)
 lapply(package_list, require, character.only = TRUE)
 
 #for debugging
-#params <- tibble(GPP.day= 3/32*1e+3, ER.day = 8/32*1e+3, PQ= 1.2, RQ= 1.2,  bigK = 20, alk.mmolm3= 500, q.m3s= 1.3, 
-#                depth.m = .5, gw.frac= 0.05, gw.O2conc = 150, gw.CO2conc = 550 ) 
+params <- tibble(GPP.day= 3/32*1e+3, ER.day = 8/32*1e+3, PQ= 1.2, RQ= 1.2,  bigK = 20, alk.mmolm3= 500, q.m3s= 1.3, 
+                depth.m = .5, gw.frac= 0.05, gw.O2conc = 150, gw.CO2conc = 550 ) 
 
 
 # Model call main function -----
@@ -125,14 +125,14 @@ co2_o2_sim <- function( params ){
       (df$q.gw[i]*gw.O2conc)/(df$area.m2[i]*df$depth.m[i])*dt - (df$q.gw[i]*df$o2.mod[i-1])/(df$area.m2[i]*df$depth.m[i])*dt + #groundwater inputs
       df$GPP[i]*dt/df$depth.m[i] +#input from GPP
       df$ER[i]*dt/df$depth.m[i] -  #output to ER
-      df$K.O2[i]*(df$o2.mod[i-1] - df$o2.air[i])*dt/df$depth.m[i] #exchange with the atmosphere
+      df$K.O2[i]*(df$o2.mod[i-1] - df$o2.air[i])*dt #exchange with the atmosphere
     
     #modelled DIC, changing from metabolism and GW inputs (now disabled)
     df$dic.mod[i] = df$dic.mod[i-1] +  #dic from previous time step
       (df$q.gw[i]*gw.DICconc)/(df$area.m2[i]*df$depth.m[i])*dt - (df$q.gw[i]*df$dic.mod[i-1])/(df$area.m2[i]*df$depth.m[i])*dt - #groundwater inputs from Hall & Tank 2005
       df$GPP[i]*1/df$PQ[i]*dt/df$depth.m[i] -# output to GPP
       df$ER[i]*df$RQ[i]*dt/df$depth.m[i] -  # input from ER, is negative as ER is negative, so is plus
-      df$K.CO2[i]*(df$co2.mod[i-1] - df$co2.air[i])*dt/df$depth.m[i] #exchange with the atmosphere, with co2 from previous ts
+      df$K.CO2[i]*(df$co2.mod[i-1] - df$co2.air[i])*dt #exchange with the atmosphere, with co2 from previous ts
 
     
     #calculate the DIC fractions with the given DIC and fixed alk

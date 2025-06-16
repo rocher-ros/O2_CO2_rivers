@@ -2,7 +2,7 @@
 ## Install and Load libraries ----
 
 # List of all packages needed
-package_list <- c('tidyverse', 'patchwork', 'sf', 'rnaturalearth', 'rnaturalearthdata')
+package_list <- c('tidyverse', 'patchwork', 'sf', 'rnaturalearth', 'rnaturalearthdata', "readxl")
 
 # Check if there are any packacges missing
 packages_missing <- setdiff(package_list, rownames(installed.packages()))
@@ -55,12 +55,43 @@ met_with_chem <- site_metab %>%
 
 
 #get the map layers for plotting
-north_america <- ne_countries(scale = "medium", returnclass = "sf") %>% 
+
+world <- ne_countries(scale = "medium", returnclass = "sf")
+
+north_america <- world %>% 
   filter(continent== "North America")
 
 rivers50 <- ne_download(scale = 50, type = 'rivers_lake_centerlines', category = 'physical', returnclass = "sf")
 
-#maps 
+lakes_coords <- read_csv("prepared data/lake data/vachon2020/table1_sensor_info.csv") %>% 
+  mutate(type= "Lakes") %>% 
+  select(type, site= Lake, Latitude, Longitude)
+
+river_coords <- read_excel("prepared data/river data/table_s1.xlsx") %>% 
+  mutate(site = `Site ID`,
+         type= "Rivers") %>% 
+  select(type, site, Latitude, Longitude)
+
+sites_coords <- bind_rows(lakes_coords, river_coords)
+# MAPS. ------
+## Map of continuous data in lakes and rivers ----
+
+
+sites_coords %>% 
+  st_as_sf(coords = c("Longitude", "Latitude"), crs = 4326) %>% 
+  ggplot()+
+  geom_sf(data= world, linewidth= 0.1)+
+  geom_sf(aes(shape= type, color= type), size= 2)+
+  scale_color_manual(values = c("cadetblue3", "slateblue4"))+
+  coord_sf(xlim = c(-140,50), ylim = c(15,72), expand = FALSE)+
+  theme_minimal()+
+  guides(color = guide_legend(override.aes = list(shape = c(16, 17))), shape = "none") +
+  theme(legend.position = c(0.92, 0.2), legend.box.background = element_rect(fill= "white"))+
+  labs(title= "", colour= "Sites")
+
+ggsave("plots/SM/map_lakes_streams.png", scale = .5)
+
+#maps of stream chemistry 
 plot_gw <- 
   ggplot()+
   geom_sf(data= north_america, linewidth= 0.1)+

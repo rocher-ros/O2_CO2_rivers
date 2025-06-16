@@ -54,7 +54,8 @@ quotients_distr <- tibble(pq = rnorm(10000, mean= 1.18, sd= .31), #from literatu
 
 #some stats for the paper
 met_with_chem %>% 
-  summarise(across(c(GPP, ER, K600), list(min = min, max= max, median=median, sd= sd, count = ~ n())))
+  mutate(k_md = K600*depth) %>% 
+  summarise(across(c(GPP, ER, k_md), list(min = min, max= max, median=median, mean=mean, sd= sd, count = ~ n())))
 
 met_with_chem %>% 
   drop_na(alk_mmol_m3) %>% 
@@ -72,12 +73,12 @@ gw_usgs %>%
 
 #calculate average values to use as fix values
 avg_values <- site_metab %>% 
-  summarise(across(c(ER, GPP, K600, k600.md, discharge, depth, gw_frac), \(x) median(x, na.rm = TRUE))) %>% 
-  mutate(PQ = median(quotients_distr$pq),
-         RQ = median(quotients_distr$rq),
-         alk_mmol_m3 = median(met_with_chem$alk_mmol_m3, na.rm = TRUE),
-         gw.O2conc = median(gw_usgs$oxygen_mg_l, na.rm = TRUE),
-         gw.CO2conc = median(gw_usgs$co2_umol_l, na.rm = TRUE))
+  summarise(across(c(ER, GPP, K600, k600.md, discharge, depth, gw_frac), \(x) mean(x, na.rm = TRUE))) %>% 
+  mutate(PQ = mean(quotients_distr$pq),
+         RQ = mean(quotients_distr$rq),
+         alk_mmol_m3 = mean(met_with_chem$alk_mmol_m3, na.rm = TRUE),
+         gw.O2conc = mean(gw_usgs$oxygen_mg_l, na.rm = TRUE),
+         gw.CO2conc = mean(gw_usgs$co2_umol_l, na.rm = TRUE))
 
 ## Common plotting settings ----
 
@@ -87,7 +88,7 @@ q_selected <- c(0.1,0.3,0.5,0.7,0.9)
 
 #ggplot commands for the ellipse plots
 ellipse_plotting_theme <- list( geom_point(size=.7),
-                               # geom_polygon(alpha=.2, linewidth = 0),
+                                # geom_polygon(alpha=.2, linewidth = 0),
                                 geom_abline(slope=-1, intercept = 0, linetype= 2),
                                 geom_hline(yintercept = 0),
                                 geom_vline(xintercept = 0),
@@ -96,7 +97,7 @@ ellipse_plotting_theme <- list( geom_point(size=.7),
                                 theme_classic(),
                                 theme(legend.position = "none", panel.border =element_rect(linewidth = 1, fill= NA),
                                       plot.title = element_text(hjust=0.5))
-                                )
+)
 
 #ggplot commands for the density plots
 density_plotting_theme <- list(geom_density_ridges_gradient(linewidth= 0),
@@ -105,7 +106,7 @@ density_plotting_theme <- list(geom_density_ridges_gradient(linewidth= 0),
                                      axis.line.y = element_blank(), axis.text.x= element_text(color= "black"),
                                      plot.background  = element_rect(linewidth = 0.3, fill= "white", color="gray80"),
                                      plot.margin = margin(3,10,-10,-7))
-                               )
+)
 
 
 ## ER plot ----
@@ -113,7 +114,7 @@ density_plotting_theme <- list(geom_density_ridges_gradient(linewidth= 0),
 #calculate selected quantiles
 ER_qs <- site_metab %>% 
   reframe(ER =quantile(ER, q_selected, na.rm = TRUE),
-            q= q_selected)
+          q= q_selected)
 
 #run the model with all fixed except ER
 pars_ER <- 
@@ -154,7 +155,7 @@ density_er <-
   scale_y_continuous( expand = c(0,0), limits= c(1,1.7))+
   scale_x_continuous(limits=c(quantile(site_metab$ER, 0.05),
                               quantile(site_metab$ER, 0.95)), expand = c(0,0),
-                      name= expression(g~O[2]~m^-2~d^-1), breaks= c(-11,-8, -5,-2), minor_breaks = scales::breaks_width(1))+
+                     name= expression(g~O[2]~m^-2~d^-1), breaks= c(-11,-8, -5,-2), minor_breaks = scales::breaks_width(1))+
   labs(x= "", y="")+
   guides(x = guide_axis(minor.ticks = TRUE))+
   theme(axis.title.x = element_text( hjust = 1.1, vjust = -1.5,   color= "gray20", size= 10),
@@ -194,8 +195,8 @@ sim_out_GPP <- pars_GPP %>%
 #plot of ellipses
 ellipses_gpp <- sim_out_GPP %>% 
   filter(date== as.Date("2020-07-07")) %>% 
-ggplot(aes(x=co2.mod-co2.air, y=o2.mod- o2.air, color= GPP.day*32/1e+3, fill= GPP.day*32/1e+3, group= GPP.day*32/1e+3))+
- # annotate("text", x= 174, y= -105, label= expression(g~O[2]~m^2~d^-1), parse= TRUE)+
+  ggplot(aes(x=co2.mod-co2.air, y=o2.mod- o2.air, color= GPP.day*32/1e+3, fill= GPP.day*32/1e+3, group= GPP.day*32/1e+3))+
+  # annotate("text", x= 174, y= -105, label= expression(g~O[2]~m^2~d^-1), parse= TRUE)+
   ellipse_plotting_theme +
   scale_color_scico( palette= "bamako",direction=-1, begin = 0.3, end=0.9)+
   scale_fill_scico(palette= "bamako",direction=-1, begin = 0.3, end=0.9)+
@@ -203,8 +204,8 @@ ggplot(aes(x=co2.mod-co2.air, y=o2.mod- o2.air, color= GPP.day*32/1e+3, fill= GP
 
 
 #density plot as a legend for each variable
- density_gpp <- ggplot(site_metab, aes(x = GPP, y = 1, fill = after_stat(x))) + 
-   density_plotting_theme +
+density_gpp <- ggplot(site_metab, aes(x = GPP, y = 1, fill = after_stat(x))) + 
+  density_plotting_theme +
   geom_segment(data= GPP_qs, aes(x=GPP, xend= GPP, y=1, yend= 1.7),  color= "gray30", linetype=1)+
   geom_text(data=GPP_qs, aes(x=GPP+c(-0.02, 0.03,0.03,0,0), y= 1.9, label=q ), angle = 90, size= 2.6)+
   scale_fill_scico( palette= "bamako",direction=-1, begin = 0.2, end=0.9)+
@@ -212,14 +213,14 @@ ggplot(aes(x=co2.mod-co2.air, y=o2.mod- o2.air, color= GPP.day*32/1e+3, fill= GP
                               quantile(site_metab$GPP, 0.95)), expand = c(0,0.1),
                      name= expression(g~O[2]~m^-2~d^-1), breaks = c(1,3,5,7))+
   scale_y_continuous( expand = c(0,0), name="", limits= c(1,2.1))+
-   guides(x = guide_axis(minor.ticks = TRUE))+
-   theme(axis.title.x = element_text( hjust = 1.1, vjust = -1.7,   color= "gray20", size= 10),
-         plot.margin = margin(-12,5,-13,-10))
-  
-# put both together
- plot_gpp <- ellipses_gpp + inset_element(density_gpp, left = 0.33, bottom = 0.5, right = .99, top= .99)
+  guides(x = guide_axis(minor.ticks = TRUE))+
+  theme(axis.title.x = element_text( hjust = 1.1, vjust = -1.7,   color= "gray20", size= 10),
+        plot.margin = margin(-12,5,-13,-10))
 
- 
+# put both together
+plot_gpp <- ellipses_gpp + inset_element(density_gpp, left = 0.33, bottom = 0.5, right = .99, top= .99)
+
+
 ## K plot ----
 K_qs <- site_metab %>% 
   reframe(K600 =quantile(K600, q_selected),
@@ -475,7 +476,7 @@ density_gw <-
   geom_text(data=gw_qs, aes(x=gw_frac*100, y= 2.13, label=q ), angle = 90, size= 2.6)+
   scale_fill_scico(palette= "glasgow", direction = -1, begin = 0.1, end=1, trans= "log10", name= "")+
   scale_x_log10(limits=c(quantile(site_metab$gw_frac, 0.05, na.rm= TRUE),
-                              quantile(site_metab$gw_frac, 0.95, na.rm= TRUE)), name="%", expand = c(0,0.07),
+                         quantile(site_metab$gw_frac, 0.95, na.rm= TRUE)), name="%", expand = c(0,0.07),
                 breaks= c(0.3,1, 3, 10),
                 guide = guide_axis_logticks(long = 2, mid = 1, short = 0.5))+
   scale_y_continuous( expand = c(0,0), name="", limits= c(1,2.4))+
@@ -531,7 +532,7 @@ density_gw_co2 <-
   geom_text(data=gw_co2_qs, aes(x=gw_co2, y= 1.0021, label=q ), angle = 90, size= 2.6)+
   scale_fill_scico(palette= "tokyo", direction = -1, begin = 0.1, end=1)+
   scale_x_continuous(limits=c(quantile(gw_usgs$co2_umol_l, 0.05, na.rm= TRUE),
-                         quantile(gw_usgs$co2_umol_l, 0.95, na.rm= TRUE)), breaks = c(250, 1000, 1750),
+                              quantile(gw_usgs$co2_umol_l, 0.95, na.rm= TRUE)), breaks = c(250, 1000, 1750),
                      name=expression(mu*mol~L^-1), expand = c(0,0.07))+
   scale_y_continuous( expand = c(0,0), name="", limits= c(1,1.0024))+
   guides(x = guide_axis(minor.ticks = TRUE))+
@@ -597,13 +598,13 @@ plot_gw_o2 <- ellipses_gw_o2 + inset_element(density_gw_o2, left = 0.33, bottom 
 
 ## Compose and export all plots ----
 plots_all <- 
-  plot_gpp + plot_er + plot_k + 
-  plot_pq + plot_rq + plot_alk +
-  plot_gw + plot_gw_co2 + plot_gw_o2 +
+  ellipses_gpp + ellipses_er + ellipses_K + 
+  ellipses_pq + ellipses_rq + ellipses_alk +
+  ellipses_gw + ellipses_gw_co2 + ellipses_gw_o2 +
   plot_layout(ncol= 3) +
-  plot_annotation(tag_levels = list(c("a", "", "b", "", "c", "", "d", "", "e", "", "f", "", "g", "", "h", "", "i" ))) 
+  plot_annotation(tag_levels = "a") 
 
-ggsave("plots/main/fig2_main_drivers.png", plots_all, height = 8, width = 8, scale=1.22)
+ggsave("plots/main/fig2_main_drivers_means.png", plots_all, height = 8, width = 8, scale=1.22)
 
 
 
@@ -628,7 +629,7 @@ dat_example <- co2_o2_sim(pars_example) %>%
   filter(gw.O2conc < 15.9, date.time > as.POSIXct("2020-07-12 06:00:00")) #get only one level of experiment and three days
 
 plot_light <- 
-ggplot(dat_example)+
+  ggplot(dat_example)+
   geom_ribbon(aes(date.time, ymin= 0, ymax= radiation), fill= "gold")+
   scale_x_datetime(breaks = "12 hours", date_labels = "%H")+
   theme_classic()+

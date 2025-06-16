@@ -70,14 +70,35 @@ sp_data <- read_csv("prepared data/river data/streampulse/stream_dataset.csv") %
   left_join(sp_metab_data, by = c("siteID" = "site", "date"= "day_month"))
 
 
+river_coords <- read_excel("prepared data/river data/table_s1.xlsx") %>% 
+  mutate(site = `Site ID`,
+         type= "Rivers") %>% 
+  select(type, site, Latitude, Longitude)
+
+
 ## read lake data ----
 # read the data deposited in Vachon et al. 2020
-files_lakes <- list.files("prepared data/lake data/vachon2020",pattern="*.csv", full.names = T)
+
+lakes_coords <- read_csv("prepared data/lake data/vachon2020/table1_sensor_info.csv") %>% 
+  mutate(type= "Lakes") %>% 
+  select(type, site= Lake, Latitude, Longitude)
+
+
+files_lakes <- list.files("prepared data/lake data/vachon2020", pattern="*.csv", full.names = T)
 
 lakes <- files_lakes %>% 
   set_names() %>% 
-  map_dfr(~ .x %>% read_delim(., delim = ";", escape_double = FALSE, trim_ws = TRUE) %>% 
-            mutate(filename = match(.x, files_lakes)) )
+  map_df(~ read_delim(.x, delim = ";", escape_double = FALSE, trim_ws = TRUE) %>% 
+           mutate(file_name = basename(.x)) ) %>% 
+  mutate(site = file_name %>% str_remove(".csv")) %>% 
+  select(-file_name) 
+
+
+
+unique(lakes$site)
+
+
+sites_coords <- bind_rows(lakes_coords, river_coords)
 
 # Data exploration and pre-processing ----
 
@@ -92,21 +113,22 @@ ggplot(aes(CO2dep, O2dep))+
 #rivers
 sp_data %>% 
   ggplot(aes(CO2dep_mmolm3, O2dep_mmolm3))+
-  geom_point(aes(color=siteID), alpha=.2)+
+  stat_ellipse(aes(color=siteID))+
   geom_abline(slope=-1, intercept = 0)+
   geom_vline(xintercept = 0)+
   geom_hline(yintercept= 0)
 
 #Join both datasets
 rivers_lakes <- lakes %>% 
-  mutate(type= "Lakes", site = as.character(filename)) %>% 
+  mutate(type= "Lakes") %>% 
   select(type, CO2dep, O2dep, site) %>% 
   bind_rows( sp_data %>% 
                mutate(type= "Rivers",
                       CO2dep =CO2dep_mmolm3,
                       O2dep = O2dep_mmolm3) %>% 
                select(type, CO2dep, O2dep, site=siteID)) %>% 
-  drop_na(CO2dep, O2dep)
+  drop_na(CO2dep, O2dep) %>% 
+  left_join(sites_coords)
 
 #summary stats
 rivers_lakes %>% group_by(type) %>% 
@@ -150,7 +172,7 @@ co2_density_plot <- rivers_lakes %>%
   scale_fill_manual(values= c("dodgerblue3", "darkorange"))+
   scale_color_manual(values= c("dodgerblue3", "darkorange"))+
   scale_y_continuous(expand = c(0,0))+
-  xlim(-30, 250)+
+  scale_x_continuous(breaks= c(-50, 0, 50, 100, 150, 200, 250), limits= c(-60, 250))+
   theme_classic()+
   theme(legend.position = "none", axis.text= element_blank(),
         axis.ticks.y= element_blank(), axis.line.y = element_blank(),
@@ -181,6 +203,7 @@ plot_lakes_rivers <- co2_density_plot+
   o2_density_plot+
   plot_layout(ncol=2, nrow = 2, guides = 'collect', widths= c(5,1), heights = c(1,4))
 
+plot_lakes_rivers
 
 ggsave(filename = "plots/main/fig1_lakes_rivers.png", plot_lakes_rivers, scale = 1, height = 6, width = 6.5)
 
@@ -198,4 +221,31 @@ metrics_site <- rivers_lakes %>%
   unnest(elipse)
 
 metrics_site
+
+
+# for the review 
+rivers_lakes %>% 
+  #filter(Latitude > 40) %>% 
+  ggplot(aes(CO2dep, O2dep)) +
+  geom_abline(slope=-1, intercept = 0,  linetype=2)+
+  geom_vline(xintercept = 0, color= "gray40")+
+  geom_hline(yintercept= 0, color= "gray40")+
+  stat_ellipse( aes(color= type), geom = "polygon", alpha = 0, level = 0.9, linewidth= .7)+
+  stat_density_2d_filled(aes(fill=type, color= type, group=type, alpha = after_stat(level)),
+                         geom = "polygon", contour = TRUE, contour_var = "ndensity",
+                         breaks = c(0.05, 0.2, 0.4,0.6,0.8,1), linewidth= .2
+  )+
+  #geom_point(data=. %>% summarise(CO2dep = median(CO2dep), #in case you want to see all the points, takes some time
+  #                                O2dep = median(O2dep), .by= type), 
+  #           aes(fill=type), shape= 23, size= 3, show.legend = FALSE)+
+  scale_y_continuous(breaks = c(-150, -100, -50, 0, 50), limits= c(-180, 80))+
+  scale_x_continuous(breaks= c(-50, 0, 50, 100, 150, 200, 250), limits= c(-60, 250))+
+  scale_fill_manual(values= c("dodgerblue3", "darkorange"))+
+  scale_color_manual(values= c("dodgerblue3", "darkorange"))+
+  labs(x=expression(CO[2]~departure~(mu*mol~L^-1)), y=expression(O[2]~departure~(mu*mol~L^-1)), color= "", fill= "")+
+  guides(alpha="none")+
+  theme_classic()+
+  theme(legend.position ="right", legend.text = element_text(size=12),
+        panel.border =element_rect(linewidth = 1, fill= NA),
+        plot.margin = margin(-20,-20,0,0))
 

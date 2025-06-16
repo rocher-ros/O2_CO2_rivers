@@ -61,7 +61,7 @@ air_CO2 = 400 #ppm
 # Read files 
 sp_data <- read_csv("raw data/river data/streampulse/_raw/streampulse/streampulse_sites_with_co2_wide.csv") %>% 
   drop_na(CO2_ppm, DO_mgL, WaterTemp_C) %>%
-  filter(CO2_ppm > 100, CO2_ppm < 20000, WaterTemp_C > -10, WaterTemp_C < 40, DO_mgL > 1,
+  filter(CO2_ppm > 50, CO2_ppm < 20000, WaterTemp_C > -1, WaterTemp_C < 40, DO_mgL > 1,
          !siteID %in% c("AbiskoM1", "AbiskoM6","AbiskoM9", "AbiskoM10","AbiskoM17", "AbiskoM16")) %>% 
   mutate(AirPres_atm = AirPres_kPa/101.325)
 
@@ -90,9 +90,10 @@ miellajokka <- list.files("raw data/river data/streampulse/_raw/miellajokka/", f
          Turbidity_NTU=NA, 
          Turbidity_FNU=NA, 
          SpecCond_uScm=NA, 
-         Nitrate_mgL=NA ) %>% 
+         Nitrate_mgL=NA,
+         remove = "no" ) %>% 
   select(siteID, dateTimeUTC, WaterTemp_C, Depth_m,  Light_lux, Discharge_m3s, AirPressCombined_atm, CO2_mmolm3:O2dep_mmolm3, 
-         CDOM_ppb, pH, Turbidity_NTU, Turbidity_FNU, SpecCond_uScm, Nitrate_mgL)
+         CDOM_ppb, pH, Turbidity_NTU, Turbidity_FNU, SpecCond_uScm, Nitrate_mgL, remove)
 
 
 sp_site_data <- read_csv("prepared data/river data/streampulse/streampulse_site_data.csv") %>% 
@@ -119,6 +120,8 @@ sp_site_data %>%
   filter(str_detect(variableList,"CO2_ppm" )) %>% 
   select(siteID) %>% 
   print(n=35)
+
+
 
 
 #get the kyrcklan DO data form Gomez-Gener et al. 2021 NatComm
@@ -199,9 +202,10 @@ co2_o2_krycklan <- bind_rows(c4_co2, c6_co2, c7_co2) %>%
          Turbidity_NTU=NA, 
          Turbidity_FNU=NA, 
          SpecCond_uScm=NA, 
-         Nitrate_mgL=NA ) %>% 
+         Nitrate_mgL=NA, 
+         remove = "no" ) %>% 
   select(siteID, dateTimeUTC, WaterTemp_C, Depth_m,  Light_lux, Discharge_m3s, AirPressCombined_atm, CO2_mmolm3:O2dep_mmolm3, 
-         CDOM_ppb, pH, Turbidity_NTU, Turbidity_FNU, SpecCond_uScm, Nitrate_mgL) %>% 
+         CDOM_ppb, pH, Turbidity_NTU, Turbidity_FNU, SpecCond_uScm, Nitrate_mgL, remove) %>% 
   filter(as.Date(dateTimeUTC) < as.Date("2018-07-01"))
 
 
@@ -232,7 +236,8 @@ sp_data_out <- sp_data  %>%
          CO2eq_mmolm3 = ppm_to_mmolm3(air_CO2, AirPressCombined_atm, WaterTemp_C),
          O2eq_mmolm3 = osat_grace(WaterTemp_C, AirPressCombined_atm, sal =0.001)/32*1000,
          CO2dep_mmolm3 = CO2_mmolm3 - CO2eq_mmolm3,
-         O2dep_mmolm3 = O2_mmolm3 - O2eq_mmolm3 ) 
+         O2dep_mmolm3 = O2_mmolm3 - O2eq_mmolm3,
+         Discharge_m3s = if_else(Discharge_m3s<= 0, 0, Discharge_m3s)) 
 
 
 sp_data_out %>% 
@@ -245,16 +250,21 @@ sp_data_out %>%
 
 
 
-
-sp_data_cleaned <- sp_data_out %>% 
+sp_data_qc <- sp_data_out %>% 
   mutate(remove = case_when(siteID == "QS" & WaterTemp_C < 2 ~ "yes",
-                            siteID == "NHC" & CO2_ppm > 15000 ~ "yes",
+                            siteID == "NHC" & CO2_ppm > 5000 ~ "yes",
                             siteID == "NHC" & DO_mgL > 20 ~ "yes",
+                            siteID == "NHC" & dateTimeUTC < as.Date("2018-02-01") ~ "yes",
                             siteID == "Drain" & CO2_ppm < 2000~ "yes",
                             siteID == "Drain" & O2dep_mmolm3 > -20 ~ "yes",
                             siteID == "BEC" & dateTimeUTC > as.Date("2017-10-01") ~ "yes",
                             siteID == "BEC" & CO2_ppm > 10000 ~ "yes",
-                            siteID == "Eno" ~ "yes",
+                            siteID == "BRW" & dateTimeUTC > as.Date("2018-03-01") ~ "yes",
+                            siteID == "WS1500" & CO2_ppm > 10000 ~ "yes",
+                            siteID == "WS1500" & dateTimeUTC < as.Date("2017-01-01") ~ "yes",
+                            siteID == "SBM" & dateTimeUTC > as.Date("2016-06-20") ~ "yes",
+                            siteID == "SBM" & dateTimeUTC > as.Date("2015-07-20") & dateTimeUTC < as.Date("2016-01-01") ~ "yes",
+                            siteID == "WHB" & DO_mgL < 6 ~ "yes",
                             siteID == "BEC" & dateTimeUTC > as.Date("2018-02-01") ~ "yes",
                             siteID == "Drain" & dateTimeUTC < as.Date("2019-01-01") ~ "yes",
                             siteID == "Drain" & dateTimeUTC < as.Date("2019-07-01") & CO2_ppm < 3000 ~ "yes",
@@ -265,16 +275,31 @@ sp_data_cleaned <- sp_data_out %>%
                             siteID == "SF2800" & dateTimeUTC > as.Date("2019-09-13") ~ "yes",
                             siteID == "SF2800" & dateTimeUTC > as.Date("2018-10-21") & dateTimeUTC < as.Date("2018-11-23") ~ "yes",
                             TRUE ~ "no") ) %>% 
-  filter(remove == "no") %>% 
   select(siteID, dateTimeUTC, WaterTemp_C, Depth_m,  Light_lux, Discharge_m3s, AirPressCombined_atm, CO2_mmolm3:O2dep_mmolm3, 
-         CDOM_ppb, pH, Turbidity_NTU, Turbidity_FNU, SpecCond_uScm, Nitrate_mgL)
+         pH, remove) 
 
-##### check some data 
-sp_data_cleaned %>% 
-  filter(siteID == "BRW") %>% 
-  ggplot(aes(CO2dep_mmolm3, O2dep_mmolm3, color=WaterTemp_C))+
-  geom_point(alpha=.2)+
-  scale_color_viridis_c()
+co2_o2_all <- bind_rows(sp_data_qc, miellajokka, co2_o2_krycklan)
+
+
+
+co2_o2_all %>% 
+  ggplot(aes(dateTimeUTC, CO2_mmolm3, color=remove))+
+  geom_point(size=.2)+
+  scale_color_manual(values= c("black","red3"))+
+  facet_wrap(~siteID, scales = "free", ncol= 4)+
+  theme(legend.position = "none")+
+  scale_y_continuous(expression(CO[2]~(mu*mol~L^-1)))+
+  labs(x= "Date")
+
+ggsave("plots/SM/co2_QC.png", height = 12, width = 11)
+
+co2_o2_all %>% 
+  ggplot(aes(dateTimeUTC, O2_mmolm3, color=remove))+
+  geom_point(size=.2)+
+  scale_color_manual(values= c("black","red3"))+
+  facet_wrap(~siteID, scales = "free", ncol= 4)+
+  theme(legend.position = "none")
+
 
 ##### check some data 
 co2_o2_krycklan %>% 
@@ -284,10 +309,26 @@ co2_o2_krycklan %>%
   geom_point(alpha=.2)+
   scale_color_viridis_c()
 
+sp_data_cleaned <- sp_data_qc 
+
 
 #export the time series dataset
-bind_rows(sp_data_cleaned, miellajokka, co2_o2_krycklan)  %>% 
-  write_csv("processed data/river data/streampulse/stream_dataset.csv")
+co2_o2_all %>% 
+  filter(remove == "no") %>% 
+  write_csv("prepared data/river data/streampulse/stream_dataset.csv")
+
+co2_o2_all %>% 
+  filter(remove == "no") %>% 
+  mutate(date= as.Date(dateTimeUTC)) %>% 
+  summarise(across(c(date, WaterTemp_C, Discharge_m3s), 
+                   list(min = \(x) min(x, na.rm = TRUE),
+                        max = \(x) max(x, na.rm = TRUE),
+                        mean = \(x) mean(x, na.rm = TRUE)),
+                   .names = "{.col}_{.fn}"),
+                   .by = "siteID") %>% 
+  select(siteID, date_min, date_max, WaterTemp_C_mean, Discharge_m3s_mean) %>%
+  left_join(sp_site_data %>% select(siteID, siteName, latitude, longitude, elev, contact, contactEmail), by = join_by(siteID)) %>% 
+  write_csv("prepared data/river data/table_streams.csv")
 
 
 ## get USGS data for each site

@@ -93,7 +93,10 @@ site_metab <- daily_metab %>%
   left_join(catchment_lengths, by= c("site_name"="site_nm")) %>% 
   mutate(groundwater_m3s = avg_discharge_m3s- (tot_length-DO.tdist80_median/1000)/tot_length*avg_discharge_m3s,
          gw_frac= groundwater_m3s/avg_discharge_m3s*100,
-         spQ_mmday = discharge_mean*3600*24/catchment_area*1000) 
+         spQ_mmday = discharge_mean*3600*24/catchment_area*1000) %>% 
+  mutate(gw_frac = if_else(gw_frac > 100 , NA, gw_frac),
+         gw_frac = if_else(gw_frac < 0.1 , NA , gw_frac))
+
 
 write_csv(site_metab, "prepared data/river data/Appling2019/site_avgs_gwinputs.tsv")
 
@@ -125,7 +128,7 @@ data_for_model <- site_metab %>%
          tot_area/(catchment_area/1e+6) > .5, tot_area/(catchment_area/1e+6) < 5,
          gw_frac <= 100) %>% 
   mutate(NEP_mean= ER_mean + GPP_mean,
-         NEP_median = ER_median + GPP_median) %>% 
+         k_md = K600_mean*depth_mean) %>% 
   left_join(site_info, by = "site_name")
 
 
@@ -134,6 +137,7 @@ lw_GPP <- loess(GPP_mean ~ log(discharge_mean), data = data_for_model)
 lw_ER <- loess(ER_mean ~ log(discharge_mean), data = data_for_model)
 lw_NEP <- loess(NEP_mean ~ log(discharge_mean), data = data_for_model)
 lw_K <- loess(K600_mean ~ log(discharge_mean), data = data_for_model)
+lw_k_md <- loess(k_md ~ log(discharge_mean), data = data_for_model)
 lw_depth <- loess(depth_mean ~ log(discharge_mean), data = data_for_model)
 lw_gw <- loess(gw_frac ~ log(discharge_mean), data = data_for_model)
 
@@ -142,6 +146,7 @@ fit_GPP <- data.frame(predict(lw_GPP, se = TRUE))
 fit_ER <- data.frame(predict(lw_ER, se = TRUE))
 fit_NEP <- data.frame(predict(lw_NEP, se = TRUE))
 fit_K <- data.frame(predict(lw_K, se = TRUE))
+fit_k_md <- data.frame(predict(lw_k_md, se = TRUE))
 fit_depth <- data.frame(predict(lw_depth, se = TRUE))
 fit_gw <- data.frame(predict(lw_gw, se = TRUE))
 
@@ -149,7 +154,6 @@ fit_gw <- data.frame(predict(lw_gw, se = TRUE))
 # make a new tibble with all variables across dicharge
 RCC_smoothed <- tibble(
              discharge = data_for_model$discharge_mean,
-             depth.m = data_for_model$depth_mean,
              GPP = data_for_model$GPP_mean,
              GPP.fit = fit_GPP$fit,
              GPP.upperBound = fit_GPP$fit + 2 * fit_GPP$se.fit,
@@ -169,7 +173,16 @@ RCC_smoothed <- tibble(
              gw = data_for_model$gw_frac,
              gw.fit = fit_gw$fit,
              gw.upperBound = fit_gw$fit + 2 * fit_gw$se.fit,
-             gw.lowerBound = fit_gw$fit - 2 * fit_gw$se.fit)
+             gw.lowerBound = fit_gw$fit - 2 * fit_gw$se.fit,
+             depth.m = data_for_model$depth_mean,
+             depth.fit = fit_depth$fit,
+             depth.upperBound = fit_depth$fit + 2 * fit_depth$se.fit,
+             depth.lowerBound = fit_depth$fit - 2 * fit_depth$se.fit,
+             k600.md = data_for_model$k_md,
+             k600.md.fit = fit_k_md$fit,
+             k600.md.upperBound = fit_k_md$fit + 2 * fit_k_md$se.fit,
+             k600.md.lowerBound = fit_k_md$fit - 2 * fit_k_md$se.fit) %>% 
+  mutate(k600.md.lowerBound = ifelse(k600.md.lowerBound <= 0, 0.001, k600.md.lowerBound))
 
 plot_nep <- ggplot(RCC_smoothed)+
   geom_ribbon(aes( discharge, ymin = NEP.lowerBound, ymax= NEP.upperBound), alpha=.3, fill= "yellow4")+
@@ -200,12 +213,12 @@ plot_er <- ggplot(RCC_smoothed)+
   labs(x= "", y= expression(ER~(g~O[2]~m^-2~d^-1)))
 
 
-plot_k <- RCC_smoothed %>% 
+plot_K <- RCC_smoothed %>% 
   filter(K600<60) %>% 
 ggplot()+
-  geom_ribbon(aes( discharge, ymin = K600.lowerBound, ymax= K600.upperBound), alpha=.3, fill= "gray60")+
-  geom_point(aes( discharge, K600), alpha=.5, color="gray30")+
-  geom_line(aes( discharge, K600.fit), color="gray30")+
+ # geom_ribbon(aes( discharge, ymin = K600.lowerBound, ymax= K600.upperBound), alpha=.3, fill= "gray60")+
+  geom_point(aes( discharge, K600), alpha=.5, color="dodgerblue3")+
+  geom_line(aes( discharge, K600.fit), color="dodgerblue4")+
   scale_y_continuous(expand = c(0,0))+
   scale_x_log10(labels = scales::number)+
   theme_classic()+
@@ -222,7 +235,31 @@ plot_gw <-
   theme_classic()+
   labs(x= expression(Discharge~(m^3~s^-1)), y= "% Groundwater")
 
-plot_vars_rcc <- plot_gpp + plot_er + plot_k + plot_gw + 
+
+plot_k_md <-
+  RCC_smoothed %>% 
+  ggplot()+
+   geom_ribbon(aes( discharge, ymin = k600.md.lowerBound, ymax= k600.md.upperBound), alpha=.3, fill= "gray40")+
+  geom_point(aes( discharge, k600.md), alpha=.5, color="gray30")+
+  geom_line(aes( discharge, k600.md.fit), color="gray20", linewidth= 1)+
+  scale_x_log10(labels = scales::number)+
+ scale_y_continuous(expand = c(0,0), limits= c(-0.11,30))+
+  theme_classic()+
+  labs(x= expression(Discharge~(m^3~s^-1)), y= expression(k[600]~(m~d^-1)))
+
+plot_depth <- 
+  RCC_smoothed %>% 
+  ggplot()+
+  geom_point(aes( discharge, depth.m), alpha=.5, color="gray20")+
+  geom_line(aes( discharge, depth.fit), color="gray50", linewidth= 1)+
+  scale_x_log10(labels = scales::number)+
+  #scale_y_log10(labels = scales::number)+
+  scale_y_continuous(expand = c(0,0))+
+  theme_classic()+
+  labs(x= expression(Discharge~(m^3~s^-1)), y= expression(Depth~(m)))
+
+
+plot_vars_rcc <- plot_gpp + plot_er + plot_k_md + plot_gw + 
   plot_layout(ncol =1 ) +
   plot_annotation(tag_levels = 'a')
 
@@ -230,6 +267,15 @@ plot_vars_rcc
 
 ggsave("plots/main/fig4_vars_rcc.png", plot = plot_vars_rcc,  width= 6, height = 8)
 
+# plot for the SM, with small k and depth
+
+
+plot_depth + plot_K +
+  plot_layout(ncol=1)+ plot_annotation(tag_levels = "a")
+
+ggsave("plots/SM//plot_k_depth.png",   width= 4, height = 5)
+  
+  # Prepare RCC simulation ----
 params_rcc <- tibble(
   discharge_mean= 10^(seq(from = log10(min(data_for_model$discharge_mean)), 
                           to = log10(max(data_for_model$discharge_mean)), length.out=50)) ) %>% 
@@ -275,8 +321,9 @@ plot_ellipse_rcc <- sim_out %>%
                         labels= scales::number)+
   theme_classic()+
   labs(x=expression(CO[2]~departure~(mu*mol~L^-1)), y= expression(O[2]~departure~(mu*mol~L^-1)),
-       color= expression(Discharge~(m^3~s^-1)))+
-  theme(legend.position= "inside", legend.position.inside =  c(.8,.88), legend.key.width = unit(5, "mm"))
+       color= expression(atop(Discharge, (m^3~s^-1))))+
+  theme(legend.position= "inside", legend.position.inside =  c(.9,.83), legend.key.width = unit(7, "mm"),
+       )
 
 #check the plot
 plot_ellipse_rcc
@@ -303,7 +350,7 @@ offset_plot <- ellipse_metrics %>%
   ggplot(aes(q.m3s, offset ))+
   geom_line(linewidth= 1.5)+
   scale_x_log10()+
-  scale_y_continuous(limits = c(0,50), breaks = c(0,25,50))+
+  scale_y_continuous(limits = c(0,100), breaks = c(0,50,100))+
   labs(y= "Offset", x = "")+
   theme_classic()
 
@@ -311,7 +358,7 @@ length_plot <- ellipse_metrics %>%
   ggplot(aes(q.m3s, length ))+
   geom_line(linewidth= 1.5)+
   scale_x_log10()+
-  scale_y_continuous(limits = c(0,100), breaks= c(0,50,100))+
+  scale_y_continuous(limits = c(50,150), breaks= c(50,100,150))+
   labs(y= "Length", x = "")+
   theme_classic()
 
