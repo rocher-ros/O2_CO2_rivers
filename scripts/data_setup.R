@@ -9,7 +9,7 @@ url <- "https://zenodo.org/records/15798750/files/prepared_data.zip?download=1"
 download.file(url, destfile = "prepared data.zip")
 
 #unzip the data
-unzip("prepared data.zip")
+unzip("prepared data.zip", exdir = "prepared data")
 
 
 #remove the zip file
