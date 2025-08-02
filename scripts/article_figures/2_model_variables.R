@@ -1108,15 +1108,15 @@ co2_example <- ggplot() +
   geom_point(data = dat_example, aes(date.time, co2.mod)) +
   scale_x_datetime(breaks = "12 hours", date_labels = "%H") +
   theme_classic() +
-  labs(x = "", y = expression(CO[2] ~ (mmol ~ L)))
+  labs(x = "", y = expression(CO[2] ~ (mu * mol ~ L^-1)))
 
 o2_example <- ggplot() +
   geom_point(data = dat_example, aes(date.time, o2.mod)) +
   scale_x_datetime(breaks = "12 hours", date_labels = "%H") +
   theme_classic() +
-  labs(x = "", y = expression(O[2] ~ (mmol ~ L)))
+  labs(x = "", y = expression(O[2] ~ (mu * mol ~ L^-1)))
 
 o2_example + co2_example + pH_example + plot_layout(ncol = 1)
 
 
-ggsave("plots/SM/example_co2_ph_o2.png", scale = .6)
+ggsave("plots/SM/example_co2_ph_o2.png", width = 5, height = 6)

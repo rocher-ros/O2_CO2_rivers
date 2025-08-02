@@ -265,6 +265,23 @@ plot_gpp <- ggplot(RCC_smoothed) +
   theme_classic() +
   labs(x = "", y = expression(GPP ~ (g ~ O[2] ~ m^-2 ~ d^-1)))
 
+plot_gpp_m3 <- ggplot(RCC_smoothed) +
+  geom_ribbon(
+    aes(
+      discharge,
+      ymin = GPP.lowerBound / depth.fit,
+      ymax = GPP.upperBound / depth.fit
+    ),
+    alpha = .3,
+    fill = "chartreuse3"
+  ) +
+  geom_point(aes(discharge, GPP / depth.m), alpha = .5, color = "chartreuse4") +
+  geom_line(aes(discharge, GPP.fit / depth.fit), color = "chartreuse4") +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 20)) +
+  scale_x_log10(labels = scales::number) +
+  theme_classic() +
+  labs(x = "", y = expression(GPP ~ (g ~ O[2] ~ m^-3 ~ d^-1)))
+
 
 plot_er <- ggplot(RCC_smoothed) +
   geom_ribbon(
@@ -279,17 +296,23 @@ plot_er <- ggplot(RCC_smoothed) +
   theme_classic() +
   labs(x = "", y = expression(ER ~ (g ~ O[2] ~ m^-2 ~ d^-1)))
 
-
-plot_K <- RCC_smoothed %>%
-  filter(K600 < 60) %>%
-  ggplot() +
-  # geom_ribbon(aes( discharge, ymin = K600.lowerBound, ymax= K600.upperBound), alpha=.3, fill= "gray60")+
-  geom_point(aes(discharge, K600), alpha = .5, color = "dodgerblue3") +
-  geom_line(aes(discharge, K600.fit), color = "dodgerblue4") +
-  scale_y_continuous(expand = c(0, 0)) +
+plot_er_m3 <- ggplot(RCC_smoothed) +
+  geom_ribbon(
+    aes(
+      discharge,
+      ymin = ER.lowerBound / depth.fit,
+      ymax = ER.upperBound / depth.fit
+    ),
+    alpha = .3,
+    fill = "red4"
+  ) +
+  geom_point(aes(discharge, ER / depth.m), alpha = .5, color = "red4") +
+  geom_line(aes(discharge, ER.fit / depth.fit), color = "red3") +
+  geom_hline(yintercept = 0) +
   scale_x_log10(labels = scales::number) +
   theme_classic() +
-  labs(x = "", y = expression(K[600] ~ (d^-1)))
+  labs(x = "", y = expression(ER ~ (g ~ O[2] ~ m^-3 ~ d^-1)))
+
 
 plot_gw <-
   RCC_smoothed %>%
@@ -355,9 +378,13 @@ ggsave(
 
 # plot for the SM, with small k and depth
 
-plot_depth + plot_K + plot_layout(ncol = 1) + plot_annotation(tag_levels = "a")
+plot_gpp_m3 +
+  plot_er_m3 +
+  plot_depth +
+  plot_layout(ncol = 1) +
+  plot_annotation(tag_levels = "a")
 
-ggsave("plots/SM//plot_k_depth.png", width = 4, height = 5)
+ggsave("plots/SM//plot_k_depth.png", width = 6, height = 8)
 
 # Prepare RCC simulation ----
 params_rcc <- tibble(
@@ -462,7 +489,7 @@ length_plot <- ellipse_metrics %>%
   geom_line(linewidth = 1.5) +
   scale_x_log10() +
   scale_y_continuous(limits = c(50, 150), breaks = c(50, 100, 150)) +
-  labs(y = "Length", x = "") +
+  labs(y = "Stretch", x = "") +
   theme_classic()
 
 eq_plot <- ellipse_metrics %>%
