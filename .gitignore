@@ -7,3 +7,54 @@
 .xlsx
 .pdf
 README.html
+scripts/article_figures/1_lakes_rivers.R
+prepared_data.zip
+prepared data/.DS_Store
+prepared data/readme.txt
+prepared data/groundwater data/.DS_Store
+prepared data/groundwater data/usgs_gw_co2_o2_site_avg.csv
+prepared data/lake data/.DS_Store
+prepared data/lake data/vachon2020/.DS_Store
+prepared data/lake data/vachon2020/Buffalo.csv
+prepared data/lake data/vachon2020/Croche.csv
+prepared data/lake data/vachon2020/edi.443.2.report.xml
+prepared data/lake data/vachon2020/edi.443.2.txt
+prepared data/lake data/vachon2020/edi.443.2.xml
+prepared data/lake data/vachon2020/Harp2013.csv
+prepared data/lake data/vachon2020/Harp2014.csv
+prepared data/lake data/vachon2020/Lillsjolidtjarnen.csv
+prepared data/lake data/vachon2020/Mangstrettjarn.csv
+prepared data/lake data/vachon2020/manifest.txt
+prepared data/lake data/vachon2020/methods.pdf
+prepared data/lake data/vachon2020/Nastjarn.csv
+prepared data/lake data/vachon2020/O2CO2metrics.r
+prepared data/lake data/vachon2020/OvreBjorntjarn.csv
+prepared data/lake data/vachon2020/Simoncouche.csv
+prepared data/lake data/vachon2020/Stortjarn.csv
+prepared data/lake data/vachon2020/Struptjarn.csv
+prepared data/lake data/vachon2020/table1_sensor_info.csv
+prepared data/lake data/vachon2020/Vortjarv.csv
+prepared data/river data/.DS_Store
+prepared data/river data/table_s1.xlsx
+prepared data/river data/Appling2019/.DS_Store
+prepared data/river data/Appling2019/daily_predictions.tsv
+prepared data/river data/Appling2019/site_avgs_gwinputs.tsv
+prepared data/river data/Appling2019/site_data.tsv
+prepared data/river data/Appling2019/catchment_shapefile/catchment_shapefile.dbf
+prepared data/river data/Appling2019/catchment_shapefile/catchment_shapefile.prj
+prepared data/river data/Appling2019/catchment_shapefile/catchment_shapefile.shp
+prepared data/river data/Appling2019/catchment_shapefile/catchment_shapefile.shx
+prepared data/river data/Appling2019/points_shapefile/points_shapefile.dbf
+prepared data/river data/Appling2019/points_shapefile/points_shapefile.prj
+prepared data/river data/Appling2019/points_shapefile/points_shapefile.shp
+prepared data/river data/Appling2019/points_shapefile/points_shapefile.shx
+prepared data/river data/streampulse/.DS_Store
+prepared data/river data/streampulse/all_daily_model_results.csv
+prepared data/river data/streampulse/chem_usgs.csv
+prepared data/river data/streampulse/discharge_usgs.csv
+prepared data/river data/streampulse/site_info_streams.csv
+prepared data/river data/streampulse/stream_dataset.csv
+prepared data/river data/streampulse/streampulse_site_data.csv
+prepared data/river data/USGS_data/.DS_Store
+prepared data/river data/USGS_data/catchment_lengths_properties.csv
+prepared data/river data/USGS_data/chemistry_site_avg.csv
